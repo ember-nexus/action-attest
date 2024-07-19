@@ -1,0 +1,31 @@
+name: 'Action Attest'
+description: 'Create release artifact attestation through Originstamp.'
+branding:
+  icon: shield
+  color: red
+inputs:
+  github-owner:
+    description: 'Name of user or organization who owns the repository.'
+    required: true
+  github-repository:
+    description: 'Name of the repository.'
+    required: true
+  github-release-tag:
+    description: 'The release tag, whose artifacts are attested.'
+    required: true
+  github-token:
+    description: 'GitHub token with read & write access to code and issues.'
+    required: true
+  originstamp-token:
+    description: 'Originstamp token.'
+    required: true
+runs:
+  using: 'docker'
+  image: 'docker://embernexus/action-attest:0.0.0'
+  env:
+    GITHUB_TOKEN=${{ inputs.github-token }}
+    ORIGINSTAMP_TOKEN=${{ inputs.originstamp-token }}
+  args:
+    - ${{ inputs.github-owner }}
+    - ${{ inputs.github-repository }}
+    - ${{ inputs.github-release-tag }}
