@@ -1,0 +1,84 @@
+name: Test
+
+on:
+  - push
+
+jobs:
+
+  yml-lint:
+    runs-on: ubuntu-latest
+    name: 'YML lint'
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker pull cytopia/yamllint
+      - run: docker run --rm -t -v $(pwd):/data cytopia/yamllint --config-file=tests/.yamllint .
+
+  markdown-lint:
+    runs-on: ubuntu-latest
+    name: 'Markdown lint'
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker pull tmknom/markdownlint
+      - run: docker run --rm -v $(pwd):/work tmknom/markdownlint '**/*.md' --config tests/.markdownlintrc --ignore vendor --ignore CHANGELOG.md --ignore var --ignore tmp
+
+  build-docker-image:
+    runs-on: buildjet-4vcpu-ubuntu-2204
+    name: 'Build Docker Image'
+    timeout-minutes: 10
+    needs:
+      - yml-lint
+      - markdown-lint
+    steps:
+      - uses: actions/checkout@v4
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build Docker image - AMD dev
+        run: |
+          docker build \
+            --target development \
+            --no-cache \
+            -t action-attest:dev-amd \
+            -f ./docker/Dockerfile \
+            .
+          docker save action-attest:dev-amd | gzip > action-attest-dev-amd.tar.gz
+      - name: Build Docker image - AMD prod
+        run: |
+          docker build \
+            --target production \
+            -t action-attest:prod-amd \
+            -f ./docker/Dockerfile \
+            .
+          docker save action-attest:prod-amd | gzip > action-attest-prod-amd.tar.gz
+      - uses: actions/upload-artifact@v4
+        with:
+          name: docker-image-action-attest-dev-amd
+          path: action-attest-dev-amd.tar.gz
+          retention-days: 7
+      - uses: actions/upload-artifact@v4
+        with:
+          name: docker-image-action-attest-prod-amd
+          path: action-attest-prod-amd.tar.gz
+          retention-days: 7
+
+  ruff-check:
+    runs-on: ubuntu-latest
+    name: 'Ruff check'
+    timeout-minutes: 5
+    needs:
+      - build-docker-image
+    steps:
+      - uses: actions/checkout@v4
+      - run: mkdir -p /tmp/docker
+      - uses: actions/download-artifact@v4
+        with:
+          name: docker-image-action-attest-dev-amd
+          path: /tmp/docker
+      - name: CS Lint
+        run: |
+          docker load < /tmp/docker/action-attest-dev-amd.tar.gz
+          docker run -v $(pwd):/app action-attest:dev-amd sh -c "pip install . && ruff check"
