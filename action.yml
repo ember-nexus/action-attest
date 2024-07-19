@@ -15,7 +15,7 @@ inputs:
     required: true
 runs:
   using: 'docker'
-  image: 'docker://embernexus/action-attest:0.0.1'
+  image: 'docker://embernexus/action-attest:0.0.2'
   env:
     GITHUB_TOKEN=${{ inputs.github-token }}
     ORIGINSTAMP_TOKEN=${{ inputs.originstamp-token }}
