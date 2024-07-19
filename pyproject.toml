@@ -1,6 +1,6 @@
 [project]
 requires-python = ">=3.12"
-version = "0.0.0"
+version = "0.0.1"
 name = "ember-nexus-action-attest"
 dependencies = [
     "click==8.1.7",
