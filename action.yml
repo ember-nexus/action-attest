@@ -13,12 +13,6 @@ inputs:
   github-release-tag:
     description: 'The release tag, whose artifacts are attested.'
     required: true
-  github-token:
-    description: 'GitHub token with read & write access to code and issues.'
-    required: true
-  originstamp-token:
-    description: 'Originstamp token.'
-    required: true
 runs:
   using: 'docker'
   image: 'docker://embernexus/action-attest:0.0.1'
