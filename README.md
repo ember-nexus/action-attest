@@ -1,12 +1,11 @@
 # Ember Nexus: Action Attest
 
 This GitHub action is used within the Ember Nexus organization to handle attestation and provenance tasks, including:
+
 - Generating merkle trees
 - Initiating Originstamp certificates using the merkle tree's root hash
 
 ## Usage
-
-
 
 ## Available commands inside the container
 
